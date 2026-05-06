@@ -1,0 +1,49 @@
+{
+  "id": "com.paca.example",
+  "displayName": "Plugin SDK Hello World",
+  "description": "Hello world examples for every Paca plugin SDK feature.",
+  "version": "0.1.0",
+  "permissions": ["db.read", "db.write", "events.subscribe", "events.emit"],
+  "backend": {
+    "eventSubscriptions": ["task.deleted"],
+    "routes": [
+      { "method": "GET", "path": "/hello" },
+      { "method": "POST", "path": "/hello" },
+      { "method": "PATCH", "path": "/hello/:id" },
+      { "method": "DELETE", "path": "/hello/:id" },
+      { "method": "GET", "path": "/hello/plain" },
+      { "method": "GET", "path": "/hello/stats" },
+      { "method": "DELETE", "path": "/hello/stats/cache" }
+    ]
+  },
+  "frontend": {
+    "remoteEntryUrl": "/plugins/com.paca.example/assets/remoteEntry.js",
+    "extensionPoints": [
+      {
+        "point": "sidebar.general.section",
+        "component": "HelloGeneralSection",
+        "order": 10
+      },
+      {
+        "point": "sidebar.project.section",
+        "component": "HelloProjectSection",
+        "order": 10
+      },
+      {
+        "point": "task.detail.section",
+        "component": "HelloTaskSection",
+        "order": 10
+      },
+      {
+        "point": "project.settings.tab",
+        "component": "HelloProjectSettingsTab",
+        "order": 10
+      },
+      {
+        "point": "view",
+        "component": "HelloView",
+        "order": 10
+      }
+    ]
+  }
+}

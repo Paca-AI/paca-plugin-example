@@ -1,70 +1,92 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { PluginApiClient, PluginQueryClientProvider } from "@paca-ai/plugin-sdk-react";
 import type { TaskDetailSectionProps } from "@paca-ai/plugin-sdk-react";
-import { usePluginQuery, usePluginQueryClient } from "@paca-ai/plugin-sdk-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PLUGIN_ID, type HelloMessage, type SuccessEnvelope } from "./constants";
-import { HelloActions, HelloButton, HelloCard, HelloRow, PluginShell, usePluginSdk } from "./shared";
+import { HelloActions, HelloButton, HelloCard, HelloRow } from "./shared";
 
 export default function HelloTaskSection(props: TaskDetailSectionProps) {
   return (
-    <PluginShell {...props}>
+    <PluginQueryClientProvider>
       <Content taskId={props.taskId} projectId={props.projectId} />
-    </PluginShell>
+    </PluginQueryClientProvider>
   );
 }
 
 function Content({ taskId, projectId }: { taskId: string; projectId: string }) {
-  const { api, meta, ui } = usePluginSdk();
-  const qc = usePluginQueryClient();
+  const api = useMemo(
+    () =>
+      new PluginApiClient({
+        baseUrl: `${window.location.origin}/api/v1`,
+        projectId,
+        fetch: (url, init) => window.fetch(url, { ...init, credentials: "include" }),
+      }),
+    [projectId],
+  );
+  const qc = useQueryClient();
   const [lastCreatedID, setLastCreatedID] = useState<string>("");
 
-  const queryKey = ["hello", "task", taskId];
-  const messages = usePluginQuery(meta.pluginId, queryKey, () =>
-    api.pluginGet<SuccessEnvelope<HelloMessage[]>>(PLUGIN_ID, `/hello?taskId=${encodeURIComponent(taskId)}`),
-  );
+  const queryKey = ["plugin", PLUGIN_ID, "hello", "task", taskId];
+  const messages = useQuery({
+    queryKey,
+    queryFn: () =>
+      api.pluginGet<SuccessEnvelope<HelloMessage[]>>(PLUGIN_ID, `/hello?taskId=${encodeURIComponent(taskId)}`),
+  });
 
-  async function refresh() {
-    await qc.invalidateQueries({ queryKey: ["plugin", meta.pluginId, ...queryKey] });
-  }
+  const invalidate = () => qc.invalidateQueries({ queryKey });
+
+  const createHelloMutation = useMutation({
+    mutationFn: () =>
+      api.pluginPost<SuccessEnvelope<HelloMessage>>(PLUGIN_ID, "/hello", {
+        name: "Task Detail",
+        task_id: taskId,
+      }),
+    onSuccess: (created) => {
+      setLastCreatedID(created.data.id);
+      void invalidate();
+    },
+  });
+
+  const patchLastMutation = useMutation({
+    mutationFn: (id: string) =>
+      api.pluginPatch<SuccessEnvelope<HelloMessage>>(PLUGIN_ID, `/hello/${id}`, {
+        name: "Task Detail Updated",
+      }),
+    onSuccess: () => {
+      void invalidate();
+    },
+  });
+
+  const deleteLastMutation = useMutation({
+    mutationFn: (id: string) => api.pluginDelete(PLUGIN_ID, `/hello/${id}`),
+    onSuccess: () => {
+      setLastCreatedID("");
+      void invalidate();
+    },
+  });
 
   async function createHello() {
-    const created = await api.pluginPost<SuccessEnvelope<HelloMessage>>(PLUGIN_ID, "/hello", {
-      name: "Task Detail",
-      task_id: taskId,
-    });
-    setLastCreatedID(created.data.id);
-    ui.toast({ title: "Created hello message", description: created.data.message, variant: "success" });
-    await refresh();
+    await createHelloMutation.mutateAsync();
   }
 
   async function patchLast() {
-    if (!lastCreatedID) {
-      ui.toast({ title: "No last message yet", variant: "destructive" });
-      return;
-    }
-    await api.pluginPatch<SuccessEnvelope<HelloMessage>>(PLUGIN_ID, `/hello/${lastCreatedID}`, {
-      name: "Task Detail Updated",
-    });
-    await refresh();
+    if (!lastCreatedID) return;
+    await patchLastMutation.mutateAsync(lastCreatedID);
   }
 
   async function deleteLast() {
-    if (!lastCreatedID) {
-      ui.toast({ title: "No last message yet", variant: "destructive" });
-      return;
-    }
-    await api.pluginDelete(PLUGIN_ID, `/hello/${lastCreatedID}`);
-    setLastCreatedID("");
-    await refresh();
+    if (!lastCreatedID) return;
+    await deleteLastMutation.mutateAsync(lastCreatedID);
   }
 
   return (
     <HelloCard
       title="Hello Task Detail"
-      subtitle="task.detail.section + pluginGet/pluginPost/pluginPatch/pluginDelete + usePluginQueryClient"
+      subtitle="task.detail.section + local PluginApiClient + React Query"
     >
       <HelloRow label="project id" value={projectId} />
       <HelloRow label="task id" value={taskId} />
-      <HelloRow label="messages for task" value={messages.data?.data.length ?? 0} />
+      <HelloRow label="messages for task" value={messages.data?.data?.length ?? 0} />
       <HelloActions>
         <HelloButton label="Create hello" onClick={createHello} />
         <HelloButton label="Patch last" onClick={patchLast} />

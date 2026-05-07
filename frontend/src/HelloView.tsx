@@ -1,26 +1,39 @@
+import { useMemo } from "react";
+import { PluginApiClient, PluginQueryClientProvider } from "@paca-ai/plugin-sdk-react";
 import type { ViewExtensionProps } from "@paca-ai/plugin-sdk-react";
-import { usePluginQuery } from "@paca-ai/plugin-sdk-react";
-import { HelloCard, HelloRow, PluginShell, usePluginSdk } from "./shared";
+import { useQuery } from "@tanstack/react-query";
+import { PLUGIN_ID } from "./constants";
+import { HelloCard, HelloRow } from "./shared";
 
 export default function HelloView(props: ViewExtensionProps) {
   return (
-    <PluginShell {...props}>
+    <PluginQueryClientProvider>
       <Content projectId={props.projectId} />
-    </PluginShell>
+    </PluginQueryClientProvider>
   );
 }
 
 function Content({ projectId }: { projectId: string }) {
-  const { api, meta } = usePluginSdk();
-
-  const tasks = usePluginQuery(meta.pluginId, ["view", "tasks", projectId], () => api.listTasks({ page_size: 20 }));
-  const firstTaskID = tasks.data?.[0]?.id;
-  const firstTask = usePluginQuery(
-    meta.pluginId,
-    ["view", "task", firstTaskID ?? "none"],
-    () => api.getTask(firstTaskID as string),
-    { enabled: Boolean(firstTaskID) },
+  const api = useMemo(
+    () =>
+      new PluginApiClient({
+        baseUrl: `${window.location.origin}/api/v1`,
+        projectId,
+        fetch: (url, init) => window.fetch(url, { ...init, credentials: "include" }),
+      }),
+    [projectId],
   );
+
+  const tasks = useQuery({
+    queryKey: ["plugin", PLUGIN_ID, "view", "tasks", projectId],
+    queryFn: () => api.listTasks({ page_size: 20 }),
+  });
+  const firstTaskID = tasks.data?.[0]?.id;
+  const firstTask = useQuery({
+    queryKey: ["plugin", PLUGIN_ID, "view", "task", firstTaskID ?? "none"],
+    queryFn: () => api.getTask(firstTaskID as string),
+    enabled: Boolean(firstTaskID),
+  });
 
   return (
     <HelloCard title="Hello View" subtitle="view + listTasks + getTask">

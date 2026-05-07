@@ -1,36 +1,44 @@
+import { useMemo } from "react";
+import { PluginApiClient, PluginQueryClientProvider } from "@paca-ai/plugin-sdk-react";
 import type { ProjectSettingsTabProps } from "@paca-ai/plugin-sdk-react";
-import { usePluginQuery } from "@paca-ai/plugin-sdk-react";
+import { useQuery } from "@tanstack/react-query";
 import { PLUGIN_ID, type SuccessEnvelope } from "./constants";
-import { HelloActions, HelloButton, HelloCard, HelloRow, PluginShell, usePluginSdk } from "./shared";
+import { HelloActions, HelloButton, HelloCard, HelloRow } from "./shared";
 
 export default function HelloProjectSettingsTab(props: ProjectSettingsTabProps) {
   return (
-    <PluginShell {...props}>
+    <PluginQueryClientProvider>
       <Content projectId={props.projectId} />
-    </PluginShell>
+    </PluginQueryClientProvider>
   );
 }
 
 function Content({ projectId }: { projectId: string }) {
-  const { api, meta, ui } = usePluginSdk();
-
-  const tasks = usePluginQuery(meta.pluginId, ["core", "tasks", projectId], () => api.listTasks({ page_size: 5 }));
-  const stats = usePluginQuery(meta.pluginId, ["plugin", "stats", projectId], () =>
-    api.pluginGet<SuccessEnvelope<{ created_count: string }>>(PLUGIN_ID, "/hello/stats"),
+  const api = useMemo(
+    () =>
+      new PluginApiClient({
+        baseUrl: `${window.location.origin}/api/v1`,
+        projectId,
+        fetch: (url, init) => window.fetch(url, { ...init, credentials: "include" }),
+      }),
+    [projectId],
   );
 
+  const tasks = useQuery({
+    queryKey: ["plugin", PLUGIN_ID, "core", "tasks", projectId],
+    queryFn: () => api.listTasks({ page_size: 5 }),
+  });
+  const stats = useQuery({
+    queryKey: ["plugin", PLUGIN_ID, "plugin", "stats", projectId],
+    queryFn: () => api.pluginGet<SuccessEnvelope<{ created_count: string }>>(PLUGIN_ID, "/hello/stats"),
+  });
+
   async function clearStats() {
-    const ok = await ui.confirm({
-      title: "Confirm reset",
-      description: "Reset hello stats cache?",
-      confirmLabel: "Reset",
-      cancelLabel: "Cancel",
-      variant: "destructive",
-    });
+    const ok = window.confirm("Reset hello stats cache?");
     if (!ok) return;
 
     await api.pluginDelete(PLUGIN_ID, "/hello/stats/cache");
-    ui.toast({ title: "Stats cache reset", variant: "success" });
+    window.alert("Stats cache reset");
   }
 
   return (
@@ -40,7 +48,7 @@ function Content({ projectId }: { projectId: string }) {
     >
       <HelloRow label="project id" value={projectId} />
       <HelloRow label="top tasks" value={tasks.data?.length ?? 0} />
-      <HelloRow label="created_count" value={stats.data?.data.created_count ?? "0"} />
+      <HelloRow label="created_count" value={stats.data?.data?.created_count ?? "0"} />
       <HelloActions>
         <HelloButton label="Reset stats cache" onClick={clearStats} variant="danger" />
       </HelloActions>

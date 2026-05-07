@@ -5,7 +5,8 @@ import (
 	"strings"
 	"time"
 
-	plugin "github.com/Paca-AI/plugin-sdk"
+	plugin "github.com/Paca-AI/plugin-sdk-go"
+	"github.com/google/uuid"
 )
 
 const statsKey = "hello.create.count"
@@ -110,9 +111,11 @@ func (p *examplePlugin) createHello(req *plugin.Request, res *plugin.Response) {
 
 	now := time.Now().UTC().Format(time.RFC3339Nano)
 	message := fmt.Sprintf("%s, %s!", prefix, name)
+	messageID := uuid.NewString()
 
-	rows, err := p.db.Query(
-		"INSERT INTO hello_messages (project_id, task_id, name, message, created_by, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, project_id, task_id, name, message, created_by, created_at, updated_at",
+	_, err = p.db.Exec(
+		"INSERT INTO hello_messages (id, project_id, task_id, name, message, created_by, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)",
+		messageID,
 		req.Caller.ProjectID,
 		nullableString(payload.TaskID),
 		name,
@@ -126,8 +129,19 @@ func (p *examplePlugin) createHello(req *plugin.Request, res *plugin.Response) {
 		res.Error(500, "failed to create hello message")
 		return
 	}
+
+	rows, err := p.db.Query(
+		"SELECT id, project_id, task_id, name, message, created_by, created_at, updated_at FROM hello_messages WHERE id = $1 AND project_id = $2",
+		messageID,
+		req.Caller.ProjectID,
+	)
+	if err != nil {
+		p.log.Error("createHello select failed: " + err.Error())
+		res.Error(500, "failed to load created hello message")
+		return
+	}
 	if len(rows.Rows) == 0 {
-		res.Error(500, "insert did not return a row")
+		res.Error(500, "created message could not be loaded")
 		return
 	}
 

@@ -1,28 +1,31 @@
+import { PLUGIN_ID } from "./constants";
 import type { SidebarGeneralSectionProps } from "@paca-ai/plugin-sdk-react";
-import { HelloActions, HelloButton, HelloCard, HelloRow, PluginShell, usePluginSdk } from "./shared";
+import { HelloActions, HelloButton, HelloCard, HelloRow } from "./shared";
 
 export default function HelloGeneralSection(props: SidebarGeneralSectionProps) {
-  return (
-    <PluginShell {...props}>
-      <Content isCollapsed={props.isCollapsed} />
-    </PluginShell>
-  );
+  return <Content isCollapsed={props.isCollapsed} />;
 }
 
 function Content({ isCollapsed }: { isCollapsed: boolean }) {
-  const { meta, ui } = usePluginSdk();
+  const pluginId = PLUGIN_ID;
+  const version = "n/a";
 
   return (
-    <HelloCard title="Hello General Sidebar" subtitle="sidebar.general.section + usePlugin + ui helpers">
-      <HelloRow label="plugin" value={meta.pluginId} />
-      <HelloRow label="version" value={meta.version} />
+    <HelloCard title="Hello General Sidebar" subtitle="sidebar.general.section + fallback-safe UI">
+      <HelloRow label="plugin" value={pluginId} />
+      <HelloRow label="version" value={version} />
       <HelloRow label="collapsed" value={isCollapsed ? "yes" : "no"} />
       <HelloActions>
         <HelloButton
           label="Toast"
-          onClick={() => ui.toast({ title: "Hello from general sidebar", variant: "success" })}
+          onClick={() => window.alert("Hello from general sidebar")}
         />
-        <HelloButton label="Navigate" onClick={() => ui.navigate("/projects")} />
+        <HelloButton
+          label="Navigate"
+          onClick={() => {
+            window.location.href = "/projects";
+          }}
+        />
       </HelloActions>
     </HelloCard>
   );

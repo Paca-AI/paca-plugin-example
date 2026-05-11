@@ -47,6 +47,6 @@
     ]
   },
   "mcp": {
-    "remoteEntryUrl": "/plugins/com.paca.example/assets/mcp.js"
+    "remoteEntryUrl": "/plugins/com.paca.example/mcp/mcp.js"
   }
 }

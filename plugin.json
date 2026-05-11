@@ -45,5 +45,8 @@
         "order": 10
       }
     ]
+  },
+  "mcp": {
+    "remoteEntryUrl": "/plugins/com.paca.example/assets/mcp.js"
   }
 }

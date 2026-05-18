@@ -30,14 +30,14 @@ function Content({ projectId }: { projectId: string }) {
   });
   const stats = useQuery({
     queryKey: ["plugin", PLUGIN_ID, "plugin", "stats", projectId],
-    queryFn: () => api.pluginGet<SuccessEnvelope<{ created_count: string }>>(PLUGIN_ID, "/hello/stats"),
+    queryFn: () => api.pluginGet<SuccessEnvelope<{ created_count: string }>>(PLUGIN_ID, `/projects/${projectId}/hello/stats`),
   });
 
   async function clearStats() {
     const ok = window.confirm("Reset hello stats cache?");
     if (!ok) return;
 
-    await api.pluginDelete(PLUGIN_ID, "/hello/stats/cache");
+    await api.pluginDelete(PLUGIN_ID, `/projects/${projectId}/hello/stats/cache`);
     window.alert("Stats cache reset");
   }
 

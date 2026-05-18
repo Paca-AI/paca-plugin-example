@@ -9,7 +9,7 @@
     "routes": [
       {
         "method": "GET",
-        "path": "/hello",
+        "path": "/projects/:projectId/hello",
         "middlewares": [
           { "name": "optionalAuthn" },
           { "name": "requireFreshPassword" },
@@ -22,7 +22,7 @@
       },
       {
         "method": "POST",
-        "path": "/hello",
+        "path": "/projects/:projectId/hello",
         "middlewares": [
           { "name": "optionalAuthn" },
           { "name": "requireFreshPassword" },
@@ -35,7 +35,7 @@
       },
       {
         "method": "PATCH",
-        "path": "/hello/:id",
+        "path": "/projects/:projectId/hello/:id",
         "middlewares": [
           { "name": "optionalAuthn" },
           { "name": "requireFreshPassword" },
@@ -48,7 +48,7 @@
       },
       {
         "method": "DELETE",
-        "path": "/hello/:id",
+        "path": "/projects/:projectId/hello/:id",
         "middlewares": [
           { "name": "optionalAuthn" },
           { "name": "requireFreshPassword" },
@@ -61,7 +61,7 @@
       },
       {
         "method": "GET",
-        "path": "/hello/plain",
+        "path": "/projects/:projectId/hello/plain",
         "middlewares": [
           { "name": "optionalAuthn" },
           { "name": "requireFreshPassword" },
@@ -74,7 +74,7 @@
       },
       {
         "method": "GET",
-        "path": "/hello/stats",
+        "path": "/projects/:projectId/hello/stats",
         "middlewares": [
           { "name": "optionalAuthn" },
           { "name": "requireFreshPassword" },
@@ -87,7 +87,7 @@
       },
       {
         "method": "DELETE",
-        "path": "/hello/stats/cache",
+        "path": "/projects/:projectId/hello/stats/cache",
         "middlewares": [
           { "name": "optionalAuthn" },
           { "name": "requireFreshPassword" },

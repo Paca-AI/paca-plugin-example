@@ -30,14 +30,14 @@ function Content({ taskId, projectId }: { taskId: string; projectId: string }) {
   const messages = useQuery({
     queryKey,
     queryFn: () =>
-      api.pluginGet<SuccessEnvelope<HelloMessage[]>>(PLUGIN_ID, `/hello?taskId=${encodeURIComponent(taskId)}`),
+      api.pluginGet<SuccessEnvelope<HelloMessage[]>>(PLUGIN_ID, `/projects/${projectId}/hello?taskId=${encodeURIComponent(taskId)}`),
   });
 
   const invalidate = () => qc.invalidateQueries({ queryKey });
 
   const createHelloMutation = useMutation({
     mutationFn: () =>
-      api.pluginPost<SuccessEnvelope<HelloMessage>>(PLUGIN_ID, "/hello", {
+      api.pluginPost<SuccessEnvelope<HelloMessage>>(PLUGIN_ID, `/projects/${projectId}/hello`, {
         name: "Task Detail",
         task_id: taskId,
       }),
@@ -49,7 +49,7 @@ function Content({ taskId, projectId }: { taskId: string; projectId: string }) {
 
   const patchLastMutation = useMutation({
     mutationFn: (id: string) =>
-      api.pluginPatch<SuccessEnvelope<HelloMessage>>(PLUGIN_ID, `/hello/${id}`, {
+      api.pluginPatch<SuccessEnvelope<HelloMessage>>(PLUGIN_ID, `/projects/${projectId}/hello/${id}`, {
         name: "Task Detail Updated",
       }),
     onSuccess: () => {
@@ -58,7 +58,7 @@ function Content({ taskId, projectId }: { taskId: string; projectId: string }) {
   });
 
   const deleteLastMutation = useMutation({
-    mutationFn: (id: string) => api.pluginDelete(PLUGIN_ID, `/hello/${id}`),
+    mutationFn: (id: string) => api.pluginDelete(PLUGIN_ID, `/projects/${projectId}/hello/${id}`),
     onSuccess: () => {
       setLastCreatedID("");
       void invalidate();

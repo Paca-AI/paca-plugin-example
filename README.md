@@ -19,6 +19,11 @@
 - Event emission: `plugin.EmitEvent(...)`
 - Testing utilities: `plugintest.NewContext`, `plugin.DispatchEvent`
 
+### Agent Skills
+
+- Manifest declaration: `skills.baseUrl` + `skills.names` in `plugin.json`
+- One `SKILL.md` (AgentSkills format: YAML frontmatter + markdown body) contributed to every agent conversation, merged alongside the agent's own configured skills and Paca's bundled defaults — see [skills-plugin-system.md](../paca/docs/plugins/skills-plugin-system.md)
+
 ### Frontend SDK (React)
 
 - Extension point prop contracts:
@@ -64,6 +69,12 @@ paca-plugin-example/
       HelloView.tsx
       constants.ts
       shared.tsx
+  mcp/
+    src/
+      index.ts
+  skills/
+    paca-hello-greeting/
+      SKILL.md
 ```
 
 ## Development

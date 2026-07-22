@@ -132,5 +132,9 @@
   },
   "mcp": {
     "remoteEntryUrl": "/plugins-mcp/com.paca.example/mcp.js"
+  },
+  "skills": {
+    "baseUrl": "/plugins-skills/com.paca.example",
+    "names": ["paca-hello-greeting"]
   }
 }

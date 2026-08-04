@@ -3,6 +3,7 @@
   "displayName": "Plugin SDK Hello World",
   "description": "Hello world examples for every Paca plugin SDK feature.",
   "version": "0.1.0",
+  "minCoreVersion": "v0.11.2",
   "permissions": ["db.read", "db.write", "events.subscribe", "events.emit"],
   "backend": {
     "eventSubscriptions": ["task.deleted"],

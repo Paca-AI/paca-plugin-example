@@ -84,7 +84,7 @@ paca-plugin-example/
 ```bash
 cd backend
 go test ./...
-GOOS=wasip1 GOARCH=wasm go build -buildmode=c-shared -o example.wasm .
+tinygo build -target=wasip1 -buildmode=c-shared -o example.wasm .
 ```
 
 ### Frontend

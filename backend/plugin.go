@@ -89,12 +89,12 @@ func (p *examplePlugin) listHello(req *plugin.Request, res *plugin.Response) {
 }
 
 func (p *examplePlugin) createHello(req *plugin.Request, res *plugin.Response) {
-	type body struct {
+	type createHelloBody struct {
 		Name   string `json:"name"`
 		TaskID string `json:"task_id"`
 	}
 
-	payload, err := plugin.JSONBody[body](req)
+	payload, err := plugin.JSONBody[createHelloBody](req)
 	if err != nil {
 		res.Error(400, "invalid JSON body")
 		return
@@ -165,11 +165,11 @@ func (p *examplePlugin) updateHello(req *plugin.Request, res *plugin.Response) {
 		return
 	}
 
-	type body struct {
+	type updateHelloBody struct {
 		Name string `json:"name"`
 	}
 
-	payload, err := plugin.JSONBody[body](req)
+	payload, err := plugin.JSONBody[updateHelloBody](req)
 	if err != nil {
 		res.Error(400, "invalid JSON body")
 		return

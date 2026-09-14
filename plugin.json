@@ -2,9 +2,17 @@
   "id": "com.paca.example",
   "displayName": "Plugin SDK Hello World",
   "description": "Hello world examples for every Paca plugin SDK feature.",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "minCoreVersion": "v0.13.3",
   "permissions": ["db.read", "db.write", "events.subscribe", "events.emit"],
+  "customPermissions": [
+    {
+      "key": "example.manage",
+      "label": "Manage Hello settings",
+      "description": "View this project's Hello Project Settings tab. Demonstrates a plugin-specific custom permission gating a project.settings.tab registration — does not affect the sidebar/task-detail/view Hello surfaces, which stay visible to any project member on purpose (the backend read routes they share with this settings tab are intentionally left ungated for that reason). Creating, editing, or deleting a Hello message from any of those surfaces still requires the built-in projects.write (Owner/Manager-tier), same as this settings tab's own write actions — an ordinary member can view but not write, on every surface alike.",
+      "scope": "project"
+    }
+  ],
   "backend": {
     "eventSubscriptions": ["task.deleted"],
     "routes": [
@@ -122,7 +130,8 @@
       {
         "point": "project.settings.tab",
         "component": "HelloProjectSettingsTab",
-        "order": 10
+        "order": 10,
+        "requiredPermission": "example.manage"
       },
       {
         "point": "view",

@@ -107,6 +107,62 @@ func TestUpdateAndDeleteHello(t *testing.T) {
 	}
 }
 
+// TestDeleteHello_ForeignProjectMatchesNonexistentResponse pins the fix for
+// an existence oracle: deleteHello used to return a distinguishable 403 for
+// "this id exists but belongs to another project" vs. 404 for "this id
+// doesn't exist at all", letting a caller enumerate valid ids across every
+// project one probe at a time. Both cases must now look identical.
+func TestDeleteHello_ForeignProjectMatchesNonexistentResponse(t *testing.T) {
+	tc := setupPlugin(t)
+
+	create := tc.Call("POST", "/hello", plugintest.Request{
+		Caller: plugin.CallerIdentity{ProjectID: "other-project", CallerID: "member-2", CallerRole: "PROJECT_MEMBER"},
+	}.WithJSONBody(map[string]any{"name": "Not yours"}))
+	if create.StatusCode != 201 {
+		t.Fatalf("expected 201, got %d: %s", create.StatusCode, create.BodyString())
+	}
+	var createEnv struct {
+		Data helloMessage `json:"data"`
+	}
+	_ = json.Unmarshal(create.Body, &createEnv)
+
+	foreign := tc.Call("DELETE", "/hello/:id", plugintest.Request{
+		Caller:     req().Caller,
+		PathParams: map[string]string{"id": createEnv.Data.ID},
+	})
+	nonexistent := tc.Call("DELETE", "/hello/:id", plugintest.Request{
+		Caller:     req().Caller,
+		PathParams: map[string]string{"id": "does-not-exist"},
+	})
+
+	if foreign.StatusCode != 404 {
+		t.Fatalf("expected 404 for a foreign-project id, got %d: %s", foreign.StatusCode, foreign.BodyString())
+	}
+	if foreign.StatusCode != nonexistent.StatusCode || foreign.BodyString() != nonexistent.BodyString() {
+		t.Fatalf("foreign-project and nonexistent responses must be identical: foreign=%d %q, nonexistent=%d %q",
+			foreign.StatusCode, foreign.BodyString(), nonexistent.StatusCode, nonexistent.BodyString())
+	}
+
+	// And the foreign message must genuinely survive (not actually deleted).
+	list := tc.Call("GET", "/hello", plugintest.Request{
+		Caller: plugin.CallerIdentity{ProjectID: "other-project", CallerID: "member-2", CallerRole: "PROJECT_MEMBER"},
+		Query:  map[string]string{},
+	})
+	var listEnv struct {
+		Data []helloMessage `json:"data"`
+	}
+	_ = json.Unmarshal(list.Body, &listEnv)
+	found := false
+	for _, m := range listEnv.Data {
+		if m.ID == createEnv.Data.ID {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatal("foreign message was deleted despite the 404")
+	}
+}
+
 func TestTaskDeletedEventRemovesTaskMessages(t *testing.T) {
 	tc := setupPlugin(t)
 

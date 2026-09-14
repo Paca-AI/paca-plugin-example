@@ -225,27 +225,21 @@ func (p *examplePlugin) deleteHello(req *plugin.Request, res *plugin.Response) {
 		return
 	}
 
-	rows, err := p.db.Query(
-		"SELECT id, project_id, task_id, name, message, created_by, created_at, updated_at FROM hello_messages WHERE id = $1",
-		id,
+	// Scoped by project_id directly in the DELETE itself, rather than a
+	// separate SELECT-then-check: returning a distinguishable 403 for "this
+	// id exists but isn't yours" vs. 404 for "this id doesn't exist" is an
+	// existence oracle, letting a caller enumerate valid ids across every
+	// project. A foreign id and a nonexistent id must look identical.
+	affected, err := p.db.Exec(
+		"DELETE FROM hello_messages WHERE id = $1 AND project_id = $2",
+		id, req.Caller.ProjectID,
 	)
 	if err != nil {
-		res.Error(500, "failed to read hello message")
-		return
-	}
-	if len(rows.Rows) == 0 {
-		res.Error(404, "hello message not found")
-		return
-	}
-
-	msg := rowToMessage(rows.Rows[0])
-	if msg.ProjectID != req.Caller.ProjectID {
-		res.Error(403, "hello message belongs to a different project")
-		return
-	}
-
-	if _, err := p.db.Exec("DELETE FROM hello_messages WHERE id = $1", id); err != nil {
 		res.Error(500, "failed to delete hello message")
+		return
+	}
+	if affected == 0 {
+		res.Error(404, "hello message not found")
 		return
 	}
 

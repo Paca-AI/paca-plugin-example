@@ -41,7 +41,7 @@ function Content({ projectId, isCollapsed }: { projectId: string; isCollapsed: b
       <HelloRow label="project id" value={projectId} />
       <HelloRow label="collapsed" value={isCollapsed ? "yes" : "no"} />
       <HelloRow label="project name" value={project.data?.name ?? "loading..."} />
-      <HelloRow label="member count" value={members.data?.length ?? 0} />
+      <HelloRow label="member count" value={members.data?.total_count ?? 0} />
     </HelloCard>
   );
 }

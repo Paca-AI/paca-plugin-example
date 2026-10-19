@@ -2,7 +2,7 @@
   "id": "com.paca.example",
   "displayName": "Plugin SDK Hello World",
   "description": "Hello world examples for every Paca plugin SDK feature.",
-  "version": "0.1.5",
+  "version": "0.3.4",
   "minCoreVersion": "v0.19.1",
   "permissions": ["db.read", "db.write", "events.subscribe", "events.emit"],
   "customPermissions": [

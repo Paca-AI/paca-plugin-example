@@ -22,6 +22,7 @@
 ### Agent Skills
 
 - Manifest declaration: `skills.baseUrl` + `skills.names` in `plugin.json`
+- Routing: an optional `skills.routes` entry (`{ "skill": "…", "when": "…" }`) adds a row for the skill to the core `paca` skill's "Route to a specialized skill" table while the plugin is installed and enabled — without it the skill is still loadable, but the `paca` skill does not point users to it. `when` completes "If the user wants to…": one line, at most 200 characters, no `|` or backticks
 - One `SKILL.md` (AgentSkills format: YAML frontmatter + markdown body) contributed to every agent conversation, merged alongside the agent's own configured skills and Paca's bundled defaults — see [skills-plugin-system.md](../paca/docs/plugins/skills-plugin-system.md)
 
 ### Frontend SDK (React)

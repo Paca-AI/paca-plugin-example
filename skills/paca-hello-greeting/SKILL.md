@@ -1,6 +1,6 @@
 ---
 name: paca-hello-greeting
-description: Compose a friendly greeting message using this plugin's Hello World tools.
+description: Compose a friendly greeting message using this plugin's Hello World tools. Use when asked to post, list, or summarize "hello" greetings for a project.
 triggers:
   - /paca-hello-greeting
 ---
@@ -8,6 +8,8 @@ triggers:
 # Hello Greeting Skill
 
 You have access to this plugin's Hello World tools (via the Paca MCP server) and its `/projects/:projectId/hello` backend routes.
+
+> This is the reference skill for plugin authors. Keep the pattern: a `description` that says what the skill does **and** when to use it; `triggers` with the slash command; a short workflow; and a matching `skills.routes` entry in `plugin.json` so the core `paca` skill points the user here while the plugin is installed.
 
 ## When to use this skill
 
